@@ -1,0 +1,287 @@
+// ClearGate database (cleargate) in DBML. Paste into dbdiagram.io to draw the ERD.
+Project cleargate {
+  database_type: 'MySQL'
+  Note: 'ClearGate student clearance system, 14 tables'
+}
+
+Table programs {
+  program_id "int unsigned" [pk, increment, note: 'Primary key']
+  code varchar(10) [not null, unique, note: 'Short code shown on the website, e.g. BSCS']
+  name varchar(120) [not null, note: 'Full program name']
+
+  Note: 'Degree programs students are enrolled in'
+}
+
+Table academic_years {
+  academic_year_id "int unsigned" [pk, increment, note: 'Primary key']
+  label varchar(20) [not null, unique, note: 'Display label, e.g. 2026 - 2027']
+  start_date date [not null, note: 'First day of the academic year']
+  end_date date [not null, note: 'Last day of the academic year']
+  is_current tinyint(1) [not null, default: 0, note: '1 = the year new clearances are opened for']
+
+  Note: 'School years a clearance belongs to'
+}
+
+Table offices {
+  office_id "int unsigned" [pk, increment, note: 'Primary key']
+  code varchar(20) [not null, unique, note: 'Stable slug used by the website, e.g. library']
+  name varchar(80) [not null, note: 'Office name shown to students']
+  icon varchar(20) [not null, default: 'file', note: 'Icon key the website draws (book, wallet, file, heart, cap, box)']
+  contact_email varchar(190) [not null, note: 'Address students can contact']
+  office_hours varchar(80) [not null, note: 'Opening hours shown on the office details sheet']
+  sort_order smallint [not null, default: 0, note: 'Display order when statuses are equal']
+  is_active tinyint(1) [not null, default: 1, note: '0 = office no longer signs clearances']
+
+  Note: 'School offices that must sign off a clearance'
+}
+
+Table users {
+  user_id "int unsigned" [pk, increment, note: 'Primary key']
+  email varchar(190) [not null, unique, note: 'Sign-in email, unique per account']
+  password_hash varchar(255) [not null, note: 'PHP password_hash() output (bcrypt); never the plain password']
+  role varchar(20) [not null, note: 'student = sees own clearance; staff = signs for one office; admin = everything (values: student, staff, admin)']
+  full_name varchar(120) [note: 'Display name for admins (staff names live in office_staff, students in students)']
+  personal_email varchar(190) [unique, note: 'Student\'s own email from the application; also accepted by Forgot password']
+  must_change_password tinyint(1) [not null, default: 0, note: '1 = signed in with a temporary password and must set a new one']
+  is_active tinyint(1) [not null, default: 1, note: '0 = account disabled, cannot sign in']
+  last_login_at datetime [note: 'Time of the most recent successful sign-in']
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'When the account was created']
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'Last change to this row']
+
+  Note: 'Sign-in accounts for students, office staff and admins'
+}
+
+Table applications {
+  application_id "int unsigned" [pk, increment, note: 'Primary key']
+  reference varchar(20) [unique, note: 'Shown to the applicant, e.g. APP-2026-0001']
+  status varchar(20) [not null, default: 'pending', note: 'Registrar decision (values: pending, approved, rejected)']
+  status_token char(64) [not null, note: 'SHA-256 of the token the applicant\'s browser uses to check status']
+  photo_name varchar(80) [note: 'Optional 2x2 photo file inside api/uploads/photos']
+  photo_mime varchar(30) [note: 'image/jpeg, image/png or image/webp']
+  admission_type varchar(40) [not null, note: 'New student, Transferee, Returnee or Cross-enrollee']
+  program_id "int unsigned" [not null, note: 'FK to programs: program applied for']
+  year_level "tinyint unsigned" [not null, note: 'Academic level applied for, 1 to 4']
+  last_name varchar(60) [not null]
+  first_name varchar(60) [not null]
+  middle_name varchar(60)
+  suffix varchar(10)
+  sex varchar(20) [not null, note: '(values: Male, Female)']
+  civil_status varchar(20) [not null]
+  birthday date [not null]
+  place_of_birth varchar(120)
+  personal_email varchar(190) [not null, note: 'Applicant\'s own email; becomes users.personal_email']
+  contact_number varchar(20) [not null]
+  religion varchar(60)
+  permanent_address varchar(255)
+  region varchar(80) [not null]
+  province varchar(80) [not null]
+  city varchar(80) [not null]
+  barangay varchar(80) [not null]
+  street varchar(160) [not null, note: 'House no. / street / subdivision']
+  postal_code varchar(10)
+  father_first varchar(60) [not null]
+  father_middle varchar(60)
+  father_last varchar(60) [not null]
+  father_occupation varchar(80) [not null]
+  mother_first varchar(60) [not null]
+  mother_middle varchar(60)
+  mother_last varchar(60) [not null]
+  mother_occupation varchar(80) [not null]
+  guardian_first varchar(60) [not null]
+  guardian_middle varchar(60)
+  guardian_last varchar(60) [not null]
+  guardian_relationship varchar(40) [not null]
+  guardian_contact varchar(20) [not null]
+  submitted_at datetime [not null, default: `CURRENT_TIMESTAMP`]
+  reviewed_by "int unsigned" [note: 'FK to users: Registrar staff or admin who decided']
+  reviewed_at datetime
+  reject_reason varchar(255) [note: 'Shown to the applicant when rejected']
+  user_id "int unsigned" [note: 'FK to users: the account created on approval']
+  temp_password varchar(40) [note: 'Temporary password shown to the applicant and Registrar; cleared once the student sets their own']
+
+  indexes {
+    (status, submitted_at)
+    personal_email
+  }
+
+  Note: 'Student sign-up applications the Registrar approves or rejects'
+}
+
+Table students {
+  student_id "int unsigned" [pk, increment, note: 'Primary key']
+  user_id "int unsigned" [not null, unique, note: 'FK to users: the student\'s sign-in account']
+  student_number varchar(20) [not null, unique, note: 'School ID; students can sign in with it instead of email']
+  first_name varchar(60) [not null, note: 'Given name']
+  last_name varchar(60) [not null, note: 'Family name']
+  program_id "int unsigned" [not null, note: 'FK to programs: current degree program']
+  year_level "tinyint unsigned" [not null, note: 'Current year level, 1 to 4']
+  application_id "int unsigned" [note: 'FK to applications: the sign-up this account came from (photo and personal details)']
+
+  indexes {
+    program_id
+  }
+
+  Note: 'Student profiles, one per student account'
+}
+
+Table office_staff {
+  user_id "int unsigned" [pk, note: 'PK and FK to users: the staff member\'s account']
+  office_id "int unsigned" [not null, note: 'FK to offices: the office this person signs for']
+  full_name varchar(120) [not null, note: 'Name shown in the audit log']
+  position varchar(80) [note: 'Job title, e.g. Head Librarian']
+
+  indexes {
+    office_id
+  }
+
+  Note: 'Which office each staff account can approve for'
+}
+
+Table clearances {
+  clearance_id "int unsigned" [pk, increment, note: 'Primary key']
+  student_id "int unsigned" [not null, note: 'FK to students: whose clearance this is']
+  academic_year_id "int unsigned" [not null, note: 'FK to academic_years: the year being cleared']
+  term varchar(20) [not null, note: 'Term being cleared (values: 1st Semester, 2nd Semester, Summer)']
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'When the clearance was opened']
+
+  indexes {
+    (student_id, academic_year_id, term) [unique]
+    academic_year_id
+  }
+
+  Note: 'One clearance per student per term'
+}
+
+Table clearance_items {
+  item_id "int unsigned" [pk, increment, note: 'Primary key']
+  clearance_id "int unsigned" [not null, note: 'FK to clearances: the clearance this sign-off belongs to']
+  office_id "int unsigned" [not null, note: 'FK to offices: the office that must sign off']
+  status varchar(20) [not null, default: 'pending', note: 'needs_action = student must do something; pending = office reviewing; approved = cleared (values: needs_action, pending, approved)']
+  task varchar(160) [not null, note: 'Headline requirement, e.g. Return 1 unreturned book']
+  remarks varchar(120) [not null, note: 'Short note shown on the office tile, e.g. 1 unreturned book']
+  description varchar(255) [not null, note: 'One-sentence explanation shown to the student']
+  next_step varchar(255) [note: 'What the student should do next; NULL once approved']
+  updated_by "int unsigned" [note: 'FK to users: who last changed this item (NULL = system/seed)']
+  updated_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'Last change to this item']
+  approved_at datetime [note: 'When the office approved; set automatically by trigger']
+
+  indexes {
+    (clearance_id, office_id) [unique]
+    (office_id, status)
+  }
+
+  Note: 'Each office\'s sign-off on a clearance'
+}
+
+Table clearance_item_logs {
+  log_id "int unsigned" [pk, increment, note: 'Primary key']
+  item_id "int unsigned" [not null, note: 'FK to clearance_items: the item that changed']
+  old_status varchar(20) [note: 'Status before the change (values: needs_action, pending, approved)']
+  new_status varchar(20) [not null, note: 'Status after the change (values: needs_action, pending, approved)']
+  note varchar(255) [note: 'Optional reason given by staff']
+  changed_by "int unsigned" [note: 'FK to users: who made the change']
+  changed_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'When the change happened']
+
+  indexes {
+    (item_id, changed_at)
+  }
+
+  Note: 'Audit trail of every status change (written by trigger)'
+}
+
+Table submissions {
+  submission_id "int unsigned" [pk, increment, note: 'Primary key']
+  item_id "int unsigned" [not null, note: 'FK to clearance_items: the office sign-off this evidence is for']
+  reference varchar(20) [unique, note: 'Human reference shown to staff, e.g. LIB-2026-0007']
+  stored_name varchar(80) [not null, note: 'Random file name inside api/uploads (never the student\'s file name)']
+  original_name varchar(160) [not null, note: 'File name the student uploaded']
+  mime_type varchar(60) [not null, note: 'application/pdf, image/jpeg, image/png or image/webp']
+  file_size "int unsigned" [not null, note: 'Bytes']
+  student_note varchar(255) [note: 'Optional message from the student']
+  status varchar(20) [not null, default: 'submitted', note: 'submitted = waiting for staff; approved/returned = staff decision; replaced = student uploaded a newer file (values: submitted, approved, returned, replaced)']
+  submitted_by "int unsigned" [note: 'FK to users: the student who uploaded it']
+  submitted_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'Upload time']
+  reviewed_by "int unsigned" [note: 'FK to users: staff member or admin who decided']
+  reviewed_at datetime [note: 'Decision time']
+  return_category varchar(80) [note: 'Reason category when returned']
+  review_note varchar(500) [note: 'Reason for return, shown to the student']
+  checklist varchar(500) [note: 'Checklist items the reviewer ticked (JSON array)']
+
+  indexes {
+    (item_id, submitted_at)
+    (status, submitted_at)
+    reviewed_at
+  }
+
+  Note: 'Evidence files students upload for an office to review'
+}
+
+Table notifications {
+  notification_id "int unsigned" [pk, increment, note: 'Primary key']
+  user_id "int unsigned" [not null, note: 'FK to users: who receives it']
+  item_id "int unsigned" [note: 'FK to clearance_items: the item it is about, if any']
+  tone varchar(20) [not null, default: 'info', note: 'Colour/icon the app uses (values: needs_action, pending, approved, info)']
+  title varchar(120) [not null, note: 'Headline, e.g. Library needs action']
+  body varchar(255) [not null, note: 'Supporting sentence']
+  is_read tinyint(1) [not null, default: 0, note: '1 = the user has opened it']
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'When it was sent']
+
+  indexes {
+    (user_id, is_read, created_at)
+  }
+
+  Note: 'Website notifications (the bell)'
+}
+
+Table password_resets {
+  reset_id "int unsigned" [pk, increment, note: 'Primary key']
+  user_id "int unsigned" [not null, note: 'FK to users: account being reset']
+  token_hash char(64) [not null, unique, note: 'SHA-256 of the emailed token; the token itself is never stored']
+  expires_at datetime [not null, note: 'Token stops working after this time']
+  used_at datetime [note: 'Set when the token is used; a token works only once']
+  created_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'When the reset was requested']
+
+  indexes {
+    user_id
+  }
+
+  Note: 'One-time password reset tokens'
+}
+
+Table login_attempts {
+  attempt_id "int unsigned" [pk, increment, note: 'Primary key']
+  login varchar(190) [not null, note: 'Email or student number that was typed']
+  ip_address varchar(45) [not null, note: 'Client IP (IPv4 or IPv6)']
+  succeeded tinyint(1) [not null, note: '1 = correct password']
+  attempted_at datetime [not null, default: `CURRENT_TIMESTAMP`, note: 'When the attempt happened']
+
+  indexes {
+    (login, attempted_at)
+    (ip_address, attempted_at)
+  }
+
+  Note: 'Sign-in attempts, used to slow down password guessing'
+}
+
+// Relationships (many > one)
+Ref: applications.program_id > programs.program_id
+Ref: applications.reviewed_by > users.user_id [delete: set null]
+Ref: applications.user_id > users.user_id [delete: set null]
+Ref: students.user_id > users.user_id [delete: cascade]
+Ref: students.program_id > programs.program_id
+Ref: students.application_id > applications.application_id [delete: set null]
+Ref: office_staff.user_id > users.user_id [delete: cascade]
+Ref: office_staff.office_id > offices.office_id
+Ref: clearances.student_id > students.student_id [delete: cascade]
+Ref: clearances.academic_year_id > academic_years.academic_year_id
+Ref: clearance_items.clearance_id > clearances.clearance_id [delete: cascade]
+Ref: clearance_items.office_id > offices.office_id
+Ref: clearance_items.updated_by > users.user_id [delete: set null]
+Ref: clearance_item_logs.item_id > clearance_items.item_id [delete: cascade]
+Ref: clearance_item_logs.changed_by > users.user_id [delete: set null]
+Ref: submissions.item_id > clearance_items.item_id [delete: cascade]
+Ref: submissions.submitted_by > users.user_id [delete: set null]
+Ref: submissions.reviewed_by > users.user_id [delete: set null]
+Ref: notifications.user_id > users.user_id [delete: cascade]
+Ref: notifications.item_id > clearance_items.item_id [delete: set null]
+Ref: password_resets.user_id > users.user_id [delete: cascade]

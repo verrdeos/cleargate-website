@@ -1,0 +1,1 @@
+Philippine locations from the PSGC 2025 Q2 dataset in the @jobuntux/psgc package (MIT licence).

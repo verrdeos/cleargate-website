@@ -1,0 +1,98 @@
+---
+config:
+  layout: elk
+  flowchart:
+    curve: basis
+---
+flowchart TB
+    PHP(["PHP API<br/>index.php + config.php"]):::php
+
+    subgraph AUTH["PHP: Sign-in & account"]
+        R_LOGIN["login"]:::route
+        R_FORGOT["forgot"]:::route
+        R_RESET["reset"]:::route
+    end
+
+    subgraph STU["PHP: Student"]
+        R_ME["me"]:::route
+        R_READ["notifications-read"]:::route
+    end
+
+    subgraph STAFF["PHP: Staff / Admin"]
+        R_QUEUE["office-queue"]:::route
+        R_UPDATE["item-update"]:::route
+    end
+
+    PHP --> AUTH
+    PHP --> STU
+    PHP --> STAFF
+
+    subgraph DB["MySQL / MariaDB: cleargate"]
+        LA[(login_attempts)]:::tbl
+        U[(users)]:::tbl
+        PR[(password_resets)]:::tbl
+        S[(students)]:::tbl
+        OS[(office_staff)]:::tbl
+        P[(programs)]:::tbl
+        O[(offices)]:::tbl
+        AY[(academic_years)]:::tbl
+        C[(clearances)]:::tbl
+        CI[(clearance_items)]:::tbl
+        LOG[(clearance_item_logs)]:::tbl
+        N[(notifications)]:::tbl
+
+        VS[/"v_clearance_summary"/]:::view
+        VI[/"v_clearance_items"/]:::view
+
+        SPU{{"sp_update_clearance_item<br/>checks staff office"}}:::proc
+        SPO{{"sp_open_clearance<br/>new term, all offices pending"}}:::proc
+
+        TB1>"trg_before_update<br/>stamp / clear approved_at"]:::trg
+        TA1>"trg_after_update<br/>write log + notify student"]:::trg
+    end
+
+    R_LOGIN -- "count failures, record attempt" --> LA
+    R_LOGIN -- "verify bcrypt, set last_login_at" --> U
+    R_FORGOT -- "look up email" --> U
+    R_FORGOT -- "store SHA-256 token, 30 min" --> PR
+    R_RESET -- "validate + mark used" --> PR
+    R_RESET -- "new password_hash" --> U
+
+    R_ME -- "profile" --> S
+    R_ME -- "dashboard" --> VS
+    R_ME -- "office tiles" --> VI
+    R_ME -- "bell" --> N
+    R_READ -- "is_read = 1" --> N
+
+    R_QUEUE -- "own office" --> OS
+    R_QUEUE -- "items this term" --> VI
+    R_UPDATE -- "CALL" --> SPU
+
+    SPU -- "role & office check" --> U
+    SPU -- "role & office check" --> OS
+    SPU -- "UPDATE status" --> CI
+    SPO -- "INSERT" --> C
+    SPO -- "one item per active office" --> CI
+
+    CI -. "BEFORE UPDATE" .-> TB1
+    CI -. "AFTER UPDATE (status changed)" .-> TA1
+    TA1 -- "INSERT history" --> LOG
+    TA1 -- "INSERT alert" --> N
+
+    VS -. reads .-> C
+    VS -. reads .-> S
+    VS -. reads .-> P
+    VS -. reads .-> AY
+    VI -. reads .-> CI
+    VI -. reads .-> O
+
+    classDef php fill:#4F5B93,stroke:#2b335a,color:#fff,font-weight:bold
+    classDef route fill:#8892BF,stroke:#4F5B93,color:#fff
+    classDef tbl fill:#e8f1fb,stroke:#2f6db5,color:#12345a
+    classDef view fill:#eaf7ea,stroke:#3a8a3a,color:#1d4d1d
+    classDef proc fill:#fff4dc,stroke:#c48a00,color:#5a3e00
+    classDef trg fill:#fde8e8,stroke:#c0392b,color:#5a1a14
+    style DB fill:#fafafa,stroke:#999
+    style AUTH fill:#f3f4fa,stroke:#8892BF
+    style STU fill:#f3f4fa,stroke:#8892BF
+    style STAFF fill:#f3f4fa,stroke:#8892BF

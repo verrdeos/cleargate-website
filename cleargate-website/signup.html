@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student application · ClearGate</title>
+  <meta name="description" content="Apply for a ClearGate student account. The Registrar reviews your application and creates your student ID and school email.">
+  <meta name="theme-color" content="#07111f">
+  <link rel="icon" type="image/png" href="assets/img/logo-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script>try{if(localStorage.getItem("cg-theme")==="dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
+  <link rel="stylesheet" href="assets/css/styles.css?v=20261024a">
+  <script src="assets/js/main.js?v=20261024a" defer></script>
+</head>
+<body data-page="apply" class="apply-body">
+  <a class="skip-link" href="#main">Skip to the application form</a>
+  <header class="apply-top">
+    <a class="apply-top__brand" href="index.html">
+      <img src="assets/img/logo-mark.png" width="40" height="40" alt="">
+      <span><strong>ClearGate</strong><small>Student application</small></span>
+    </a>
+    <nav class="apply-top__links" aria-label="Account">
+      <a href="application-status.html">Check application status</a>
+      <a class="apply-top__signin" href="index.html">Sign in</a>
+    </nav>
+  </header>
+
+  <main class="apply" id="main">
+    <div class="apply__intro">
+      <h1 class="apply__title">Apply for a student account</h1>
+      <p class="apply__lead">Fill in your details. The Registrar reviews your application, then creates your <strong>student ID</strong>, your school email (<strong>surnamefirstname@cgateway.edu.ph</strong>) and a temporary password. You&rsquo;ll see them on your application status page.</p>
+    </div>
+
+    <form class="card apply__card" data-apply-form novalidate>
+      <p class="form-error form-error--light" data-form-error role="alert" hidden></p>
+
+      <section class="apply__section" aria-labelledby="photo-title">
+        <h2 class="apply__heading" id="photo-title">Display Photo <span class="apply__optional">(optional)</span></h2>
+        <div class="photo-drop" data-photo-drop>
+          <img class="photo-drop__preview" data-photo-preview alt="Your 2x2 photo" hidden>
+          <p class="photo-drop__hint" data-photo-hint>Upload a 2x2 photo (image only)</p>
+          <label class="btn btn--navy photo-drop__btn">
+            <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="visually-hidden" data-photo-input>
+            <span data-photo-btn>Upload Photo</span>
+          </label>
+        </div>
+        <div class="apply__grid">
+          <label class="af af--select"><select class="af__control" name="admission_type" required><option value=""></option><option>New student</option><option>Transferee</option><option>Returnee</option><option>Cross-enrollee</option></select><span class="af__label">Admission Type *</span></label>
+          <label class="af af--select"><select class="af__control" name="year_level" required><option value=""></option><option value="1">1st Year</option><option value="2">2nd Year</option><option value="3">3rd Year</option><option value="4">4th Year</option></select><span class="af__label">Academic Level Applied For *</span></label>
+          <label class="af af--select"><select class="af__control" name="program" required data-program-select><option value=""></option></select><span class="af__label">Program *</span></label>
+        </div>
+      </section>
+
+      <section class="apply__section" aria-labelledby="info-title">
+        <h2 class="apply__heading" id="info-title">Student Information</h2>
+        <div class="apply__grid">
+          <label class="af"><input class="af__control" name="last_name" type="text" placeholder=" " required maxlength="60" autocomplete="family-name"><span class="af__label">Last Name *</span></label>
+          <label class="af"><input class="af__control" name="first_name" type="text" placeholder=" " required maxlength="60" autocomplete="given-name"><span class="af__label">First Name *</span></label>
+          <label class="af"><input class="af__control" name="middle_name" type="text" placeholder=" " maxlength="60" autocomplete="additional-name"><span class="af__label">Middle Name</span></label>
+          <label class="af"><input class="af__control" name="suffix" type="text" placeholder=" " maxlength="10" list="suffixes"><span class="af__label">Suffix</span></label>
+          <label class="af af--select"><select class="af__control" name="sex" required><option value=""></option><option>Male</option><option>Female</option></select><span class="af__label">Sex *</span></label>
+          <label class="af af--select"><select class="af__control" name="civil_status" required><option value=""></option><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option></select><span class="af__label">Civil Status *</span></label>
+          <label class="af af--date"><input class="af__control" name="birthday" type="date" placeholder=" " required autocomplete="bday"><span class="af__label">Birthday *</span></label>
+          <label class="af"><input class="af__control" name="place_of_birth" type="text" placeholder=" " maxlength="120"><span class="af__label">Place of Birth</span></label>
+          <div><label class="af"><input class="af__control" name="personal_email" type="email" placeholder=" " required maxlength="190" autocomplete="email"><span class="af__label">Email *</span></label><span class="af__hint">Your personal email. Use it for Forgot password and status checks.</span></div>
+          <label class="af"><input class="af__control" name="contact_number" type="tel" placeholder=" " required maxlength="20" autocomplete="tel" inputmode="tel" pattern="\+?[0-9][0-9 \-]{6,18}"><span class="af__label">Contact Number *</span></label>
+          <label class="af"><input class="af__control" name="religion" type="text" placeholder=" " maxlength="60"><span class="af__label">Religion</span></label>
+          <label class="af af--area"><textarea class="af__control" name="permanent_address" rows="2" maxlength="255" placeholder=" "></textarea><span class="af__label">Permanent Address</span></label>
+        </div>
+        <datalist id="suffixes"><option>Jr.</option><option>Sr.</option><option>II</option><option>III</option><option>IV</option></datalist>
+      </section>
+
+      <section class="apply__section" aria-labelledby="addr-title">
+        <h2 class="apply__heading" id="addr-title">Current Address</h2>
+        <div class="apply__grid">
+          <label class="af af--select"><select class="af__control" name="region" required data-addr="region"><option value=""></option></select><span class="af__label">Region *</span></label>
+          <label class="af af--select"><select class="af__control" name="province" required data-addr="province" disabled><option value=""></option></select><span class="af__label">Province *</span><span class="af__hint">Select a region first</span></label>
+          <label class="af af--select"><select class="af__control" name="city" required data-addr="city" disabled><option value=""></option></select><span class="af__label">City / Municipality *</span><span class="af__hint">Select a province first</span></label>
+          <label class="af af--select"><select class="af__control" name="barangay" required data-addr="barangay" disabled><option value=""></option></select><span class="af__label">Barangay *</span><span class="af__hint">Select a city / municipality first</span></label>
+          <label class="af"><input class="af__control" name="street" type="text" placeholder=" " required maxlength="160" autocomplete="address-line1"><span class="af__label">House No. / Street / Subdivision *</span></label>
+          <label class="af"><input class="af__control" name="postal_code" type="text" placeholder=" " maxlength="4" inputmode="numeric" pattern="[0-9]{4}" autocomplete="postal-code"><span class="af__label">Postal Code (optional)</span></label>
+        </div>
+      </section>
+
+      <section class="apply__section" aria-labelledby="family-title">
+        <h2 class="apply__heading" id="family-title">Parent&rsquo;s/Guardian&rsquo;s Information</h2>
+        
+          <h3 class="apply__sub">Father</h3>
+          <div class="apply__grid apply__grid--3">
+            <label class="af"><input class="af__control" name="father_first" type="text" placeholder=" " required maxlength="60" autocomplete="off"><span class="af__label">First Name *</span></label>
+            <div><label class="af"><input class="af__control" name="father_middle" type="text" placeholder=" " maxlength="60" autocomplete="off"><span class="af__label">Middle Name</span></label><span class="af__hint">Optional</span></div>
+            <label class="af"><input class="af__control" name="father_last" type="text" placeholder=" " required maxlength="60" autocomplete="off"><span class="af__label">Last Name *</span></label>
+          </div>
+          <div class="apply__grid"><label class="af"><input class="af__control" name="father_occupation" type="text" placeholder=" " required maxlength="80"><span class="af__label">Occupation *</span></label></div>
+        
+          <h3 class="apply__sub">Mother</h3>
+          <div class="apply__grid apply__grid--3">
+            <label class="af"><input class="af__control" name="mother_first" type="text" placeholder=" " required maxlength="60" autocomplete="off"><span class="af__label">First Name *</span></label>
+            <div><label class="af"><input class="af__control" name="mother_middle" type="text" placeholder=" " maxlength="60" autocomplete="off"><span class="af__label">Middle Name</span></label><span class="af__hint">Optional</span></div>
+            <label class="af"><input class="af__control" name="mother_last" type="text" placeholder=" " required maxlength="60" autocomplete="off"><span class="af__label">Last Name *</span></label>
+          </div>
+          <div class="apply__grid"><label class="af"><input class="af__control" name="mother_occupation" type="text" placeholder=" " required maxlength="80"><span class="af__label">Occupation *</span></label></div>
+          <div class="apply__subrow"><h3 class="apply__sub">Guardian</h3>
+            <span class="apply__copy">Same as: <button type="button" class="chip" data-copy-parent="father">Father</button> <button type="button" class="chip" data-copy-parent="mother">Mother</button></span></div>
+          <div class="apply__grid apply__grid--3">
+            <label class="af"><input class="af__control" name="guardian_first" type="text" placeholder=" " required maxlength="60" autocomplete="off"><span class="af__label">First Name *</span></label>
+            <div><label class="af"><input class="af__control" name="guardian_middle" type="text" placeholder=" " maxlength="60" autocomplete="off"><span class="af__label">Middle Name</span></label><span class="af__hint">Optional</span></div>
+            <label class="af"><input class="af__control" name="guardian_last" type="text" placeholder=" " required maxlength="60" autocomplete="off"><span class="af__label">Last Name *</span></label>
+          </div>
+          <div class="apply__grid">
+            <label class="af"><input class="af__control" name="guardian_relationship" type="text" placeholder=" " required maxlength="40"><span class="af__label">Relationship to Guardian *</span></label>
+            <label class="af"><input class="af__control" name="guardian_contact" type="tel" placeholder=" " required maxlength="20" inputmode="tel" pattern="\+?[0-9][0-9 \-]{6,18}"><span class="af__label">Guardian Contact Number *</span></label>
+          </div>
+      </section>
+
+      <div class="apply__submit">
+        <label class="check-line"><input type="checkbox" name="certify" required> I certify that the information above is true and correct.</label>
+        <button class="btn btn--navy btn--lg" type="submit">Submit application</button>
+      </div>
+    </form>
+  </main>
+  <div class="toast" data-toast role="status" hidden></div>
+</body>
+</html>
